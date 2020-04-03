@@ -4,15 +4,15 @@ def eMailList='susclick@gmail.com'
 
 pipeline {
     agent any
-    // С‚СЂРµР±СѓРµС‚СЃСЏ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕ РЅР°СЃС‚СЂРѕРёС‚СЊ РґР¶РµРЅРєРёРЅСЃ РґР»СЏ СЌС‚РѕРіРѕ Р±Р»РѕРєР°
+    // требуется предварительно настроить дженкинс для этого блока
     tools {
        jdk 'jdk1.8.0_201'
        maven 'apache-maven-3.6.3'
     }
 
     parameters{
-        string defaultValue: '', description: 'remote web driver url (РѕСЃС‚Р°РІРёС‚СЊ РїСѓСЃС‚С‹Рј, РµСЃР»Рё РЅРµ С‚СЂРµР±СѓРµС‚СЃСЏ РіСЂРёРґ)', name: 'remoteWevDriverUrl', trim: true
-        string defaultValue: '', description: 'parallel threads count per cpu for parallel run (РѕСЃС‚Р°РІРёС‚СЊ РїСѓСЃС‚С‹Рј, РµСЃР»Рё РЅРµ С‚СЂРµР±СѓРµС‚СЃСЏ РїР°СЂР°Р»Р»РµР»СЊРЅС‹Р№ Р·Р°РїСѓСЃРє)', name: 'parallelThreads', trim: true
+        string defaultValue: '', description: 'remote web driver url (оставить пустым, если не требуется грид)', name: 'remoteWevDriverUrl', trim: true
+        string defaultValue: '', description: 'parallel threads count per cpu for parallel run (оставить пустым, если не требуется параллельный запуск)', name: 'parallelThreads', trim: true
     }
     stages {
        stage('Checkout project') {
@@ -35,13 +35,13 @@ pipeline {
     }
     post {
         always {
-            // РЅСѓР¶РЅРѕ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕ РїР»Р°РіРёРЅ Р°Р»Р»СЋСЂР° РІ РґР¶РµРЅРєРёРЅСЃ РґРѕР±Р°РІРёС‚СЊ
+            // нужно предварительно плагин аллюра в дженкинс добавить
             allure results: [[path: 'target/allure-results']]
-            // РЅСѓР¶РЅРѕ РїРѕСЃС‚Р°РІРёС‚СЊ junit jenkins plugin, С‡С‚РѕР±С‹ СЃС‡РёС‚Р°С‚СЊ junit СЂРµРїРѕСЂС‚С‹ РґР»СЏ РґР°Р»СЊРЅРµР№С€РµРіРѕ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ РІРЅСѓС‚СЂРё С€Р°Р±Р»РѕРЅР° РЅРѕС‚РёС„РёРєР°С†РёР№
+            // нужно поставить junit jenkins plugin, чтобы считать junit репорты для дальнейшего использования результатов внутри шаблона нотификаций
             junit 'target/surefire-reports/TEST*.xml'
-            // РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕ РїРѕР»РѕР¶РёС‚СЊ С€Р°Р±Р»РѕРЅ РЅРѕС‚РёС„РёРєР°С†РёРё РІ JenkinsHome/email-templates
+            // предварительно положить шаблон нотификации в JenkinsHome/email-templates
             emailext body: '${SCRIPT, template="at-cucumber-eml-tmpl.groovy"}',
-                    subject: "${env.JOB_NAME} - Р—Р°РїСѓСЃРє Р°РІС‚РѕС‚РµСЃС‚РѕРІ # ${env.BUILD_NUMBER}",
+                    subject: "${env.JOB_NAME} - Запуск автотестов # ${env.BUILD_NUMBER}",
                     mimeType: 'text/html', 
                     to: "${eMailList}",
                     attachLog: true
